@@ -435,16 +435,22 @@ def attendance_score():
         if student["section_number"] in class_sections:
             total_classes_missed = 0
             for assignment in all_classes_missed_assignments:
+                score_str = student[assignment]
                 try:
                     # the gradebook might have decimals (e.g. 0.00),
                     # but we need an int for total_classes_missed to be
                     # used as a key. hence parsing the string as a float,
                     # then immediately casting to int (python raises
                     # ValueError for casting decimal strings to ints)
-                    total_classes_missed += int(float(student[assignment]))
+                    total_classes_missed += int(float(score_str))
                 except ValueError:
-                    total_classes_missed += int(
-                        float(puller.canvas_points_out_of[assignment]))
+                    if score_str == "N/A":
+                        # count N/A as zero (for ease of grading online section)
+                        pass
+                    else:
+                        total_classes_missed = (
+                            total_classes_missed +
+                            int(float(puller.canvas_points_out_of[assignment])))
 
             try:
                 grade = points_by_classes_missed[total_classes_missed]
