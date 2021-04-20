@@ -436,10 +436,15 @@ def attendance_score():
             total_classes_missed = 0
             for assignment in all_classes_missed_assignments:
                 try:
-                    total_classes_missed += int(student[assignment])
+                    # the gradebook might have decimals (e.g. 0.00),
+                    # but we need an int for total_classes_missed to be
+                    # used as a key. hence parsing the string as a float,
+                    # then immediately casting to int (python raises
+                    # ValueError for casting decimal strings to ints)
+                    total_classes_missed += int(float(student[assignment]))
                 except ValueError:
                     total_classes_missed += int(
-                        puller.canvas_points_out_of[assignment])
+                        float(puller.canvas_points_out_of[assignment]))
 
             try:
                 grade = points_by_classes_missed[total_classes_missed]
