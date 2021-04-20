@@ -7,7 +7,7 @@ import requests
 
 from zygrader.config.shared import SharedData
 
-REPO_NAME = "natecraddock/zygrader"
+REPO_NAME = "cs142ta/zygrader"
 API_URL = f"https://api.github.com/repos/{REPO_NAME}/tags"
 
 

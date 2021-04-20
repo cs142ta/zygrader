@@ -11,7 +11,7 @@ setuptools.setup(
     version=VERSION_STR,
     author="Nathan Craddock",
     author_email="nzcraddock@gmail.com",
-    url="https://github.com/natecraddock/zygrader",
+    url="https://github.com/cs142ta/zygrader",
     packages=setuptools.find_packages(),
     package_data={
         "": ["*.txt"],

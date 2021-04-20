@@ -1,7 +1,9 @@
 # zygrader
 _Zygrader is a Python 3 ncurses tool to facilitate grading student submissions on the zyBooks online programming textbook system. It has been tested on Linux._
 
-Zygrader is a tool developed for the BYU CS142 Introduction to Computer Programming teaching assistants by Nathan Craddock, and others have since contributed to the project. Rather than navigating the slow zyBooks website to review student code, zygrader assists the grader in downloading, running, reviewing, and comparing student code.
+Zygrader is a tool developed for the BYU CS142 Introduction to Computer Programming teaching assistants by [Nathan Craddock](https://github.com/natecraddock),
+and others have since contributed to the project. Rather than navigating the slow zyBooks website to review student code,
+zygrader assists the grader in downloading, running, reviewing, and comparing student code.
 
 Contents:
 - [Installation](#installation)
@@ -18,7 +20,7 @@ accesses a shared folder that can be stored at any location.
 ## Installation
 ```
 # Install
-$ wget -O - https://raw.githubusercontent.com/natecraddock/zygrader/master/install.py | python3
+$ wget -O - https://raw.githubusercontent.com/cs142ta/zygrader/master/install.py | python3
 
 # Run
 $ python3 -m zygrader
