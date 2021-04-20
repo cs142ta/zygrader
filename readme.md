@@ -41,6 +41,11 @@ $ echo "alias zygrader='python3 -m zygrader'" >> ~/.bashrc
 $ zygrader
 ```
 
+To uninstall zygrader run the following:
+```
+$ python3 -m pip uninstall zygrader
+```
+
 ## Setup
 
 Zygrader will not run without setting the data directory.
