@@ -1,10 +1,10 @@
 """Admin: Functions for more "administrator" users of zygrader to manage
 the class, scan through student submissions, and access to other menus"""
-from zygrader.ui.templates import filename_input
-from zygrader.ui import window
+from zygrader.ui.templates import ZybookSectionSelector, filename_input
 from zygrader.config import preferences
 
 import csv
+import datetime
 import os
 import requests
 import re
@@ -472,6 +472,96 @@ def attendance_score():
     puller.write_upload_file(out_path, restrict_sections=True)
 
 
+def report_high_scoring_students():
+    """Generate a list of students who met specified thresholds"""
+    window = ui.get_window()
+
+    # Selecting Assignments to Consider
+    selector = ZybookSectionSelector()
+    zybook_assignments = selector.select_zybook_sections(
+        title_extra="Assignments to Consider")
+    if not zybook_assignments:
+        return
+
+    # Selecting Minimum Score
+    min_score_input_prompt = [
+        "Enter the minimum score needed on each assignment to be considered (0-100):",
+        "(the default text is a suggested minimum)"
+    ]
+    schema_input = ui.layers.TextInputLayer("Minimum Score")
+    schema_input.set_prompt(min_score_input_prompt)
+    schema_input.set_text("85")
+    valid_input = False
+    minimum_score = 0
+    while not valid_input:
+        window.run_layer(schema_input)
+        if schema_input.canceled:
+            return
+        try:
+            minimum_score = int(schema_input.get_text())
+            valid_input = True
+        except ValueError:
+            window.run_layer(
+                ui.layers.Popup("Error", ["You must provide integer values"]))
+
+    # Select the output file location
+    out_path = filename_input(purpose="the high scorer's report",
+                              text=os.path.join(preferences.get("output_dir"),
+                                                "high_scorers.csv"))
+    if out_path is None:
+        return
+
+    # The rest of the function is data crunching,
+    # and it takes a while, so wrap it in a WaitPopup
+    wait_popup = ui.layers.WaitPopup("Filtering")
+
+    def data_cruncher():
+        # Fetch Completion Report
+        wait_popup.set_message([f"Fetching completion report."])
+        now = datetime.datetime.now()
+        puller = grade_puller.GradePuller()
+        report, header = puller.fetch_completion_report(now, zybook_assignments)
+
+        # Set up for filtering
+        considerables = set(report.keys())
+
+        score_column_pat = re.compile(r".*\([1-9][0-9]*\)")
+        total_column_pat = re.compile(r".*total.*", re.IGNORECASE)
+
+        # Filter students
+        wait_popup.set_message(["Filtering students based on scores."])
+        for assignment_name in header:
+            if ((not score_column_pat.match(assignment_name))
+                    or total_column_pat.match(assignment_name)):
+                continue
+            for stud in report.keys():
+                score_str = report[stud][assignment_name]
+                score = float(score_str) if score_str else 0
+                if score < minimum_score:
+                    considerables.discard(stud)
+
+        # Write the report
+        wait_popup.set_message(["Writing the report"])
+        # Use the same headers as the report, up to and including the email column
+        email_column_pat = re.compile(r".*email.*", re.IGNORECASE)
+        output_headers = []
+        for column in header:
+            output_headers.append(column)
+            if email_column_pat.match(column):
+                break
+        with open(out_path, "w", newline="") as out_file:
+            writer = csv.DictWriter(out_file,
+                                    fieldnames=output_headers,
+                                    extrasaction='ignore')
+            writer.writeheader()
+            writer.writerows(row for stud, row in report.items()
+                             if stud in considerables)
+
+    # Run the wait popup we made earlier, with the data crunching inside it
+    wait_popup.set_wait_fn(data_cruncher)
+    window.run_layer(wait_popup)
+
+
 def end_of_semester_tools():
     """Create the menu for end of semester tools"""
     window = ui.get_window()
@@ -497,5 +587,7 @@ def admin_menu():
     menu.add_row_text("Class Management", class_manager.start)
     menu.add_row_text("Bob's Shake", bobs_shake.shake)
     menu.add_row_text("End Of Semester Tools", end_of_semester_tools)
+    menu.add_row_text("Report High-Scoring Students",
+                      report_high_scoring_students)
 
     window.register_layer(menu, "Admin")
