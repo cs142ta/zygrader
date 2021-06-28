@@ -1,5 +1,8 @@
 # Try to keep lines shorter than 70 characters
 
+5.10.0
+* Add "Report High Scoring Students" to Admin Menu.
+
 5.8.0
 * Add prep lab score calc to email manager popup.
 * Add end-of-semester grading helpers.
