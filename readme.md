@@ -17,31 +17,33 @@ Contents:
 Zygrader is installed through `pip` for each user who each have their own local configuration stored at `~/.config/zygrader/config.json`. Each user
 accesses a shared folder that can be stored at any location.
 
-## Installation
+To install zygrader run the following:
+
 ```
-# Install
-$ wget -O - https://raw.githubusercontent.com/cs142ta/zygrader/master/install.py | python3
+python3 -m pip install https://github.com/cs142ta/zygrader/archive/master.zip
+```
 
-# Run
-$ python3 -m zygrader
+Zygrader is installed to `~/.local/bin/zygrader`. If you do not already have
+`~/.local/bin` on your PATH then run the following:
 
-# To run as `zygrader` rather than `python3 -m zygrader` you must add an alias.
-# To add the alias every time you open a shell, use the following command
-$ echo "alias zygrader='python3 -m zygrader'" >> ~/.bashrc
+```
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.profile
+```
 
-# If you want to use zygrader over ssh (or in other login shells), you need the alias to be created when your .bash_profile is read.
-# There are two ways to do this:
-  # The following command will make your .bash_profile source the .bashrc file
-  $ echo -e 'if [ -f ~/.bashrc ]; then\n\t. ~/.bashrc\nfi' >> ~/.bash_profile
+To start zygrader run the following in a terminal
 
-  # You can also put the same command as above into the .bash_profile using the following command
-  $ echo "alias zygrader='python3 -m zygrader'" >> ~/.bash_profile
+```
+zygrader
+```
 
-# Then you can run as
-$ zygrader
+If you would rather not modify your PATH you can run zygrader through python
+
+```
+python3 -m zygrader
 ```
 
 To uninstall zygrader run the following:
+
 ```
 $ python3 -m pip uninstall zygrader
 ```
