@@ -45,7 +45,7 @@ python3 -m zygrader
 To uninstall zygrader run the following:
 
 ```
-$ python3 -m pip uninstall zygrader
+python3 -m pip uninstall zygrader
 ```
 
 ## Setup
@@ -88,29 +88,29 @@ for developing zygrader. To solve these issues, virtual environments are used.
 
 Install virtualenv
 ```
-$ python3 -m pip install --user virtualenv
+python3 -m pip install --user virtualenv
 ```
 
 Create the virtual environment
 ```
-$ python3 -m venv ~/.virtualenvs/zygrader
+python3 -m venv ~/.virtualenvs/zygrader
 ```
 
 Enter the virtual environment
 ```
-$ source ~/.virtualenvs/zygrader/bin/activate
+source ~/.virtualenvs/zygrader/bin/activate
 ```
 
 You must first install zygrader in _develop mode_ before running from source. Run the following from the zygrader repository (installing needed deps).
 ```
-$ pip3 install requests yapf
-$ pip3 install -e .
+pip3 install requests yapf
+pip3 install -e .
 ```
 
 zygrader can be run directly from the main file, or as a module during development (supports alias)
 ```
-$ python3 zygrader/main.py
-$ python3 -m zygrader
+python3 zygrader/main.py
+python3 -m zygrader
 ```
 
 To exit the virtual environment
@@ -140,12 +140,12 @@ VERSION variable in `shared.py` exactly.
 
 **Example:** _pushing a major version 3.6.0_
 ```
-$ ./push_update.sh 3.6.0
+./push_update.sh 3.6.0
 ```
 
 **Example:** _pushing a buxfix update to version 3.5.0_
 ```
-$ ./push_update.sh 3.5.1
+./push_update.sh 3.5.1
 ```
 
 ## Environment (VSCode)
