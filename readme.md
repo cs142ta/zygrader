@@ -27,7 +27,7 @@ Zygrader is installed to `~/.local/bin/zygrader`. If you do not already have
 `~/.local/bin` on your PATH then run the following:
 
 ```
-echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.profile
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
 ```
 
 To start zygrader run the following in a terminal
