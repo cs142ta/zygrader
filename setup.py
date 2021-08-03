@@ -18,7 +18,7 @@ setuptools.setup(
     },
     entry_points={
         "console_scripts": [
-            "zygrader = zygrader.main:main",
+            "zygrader = zygrader.main:start",
         ]
     },
 )
