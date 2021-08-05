@@ -17,33 +17,41 @@ Contents:
 Zygrader is installed through `pip` for each user who each have their own local configuration stored at `~/.config/zygrader/config.json`. Each user
 accesses a shared folder that can be stored at any location.
 
-## Installation
+To install zygrader run the following:
+
 ```
-# Install
-$ wget -O - https://raw.githubusercontent.com/cs142ta/zygrader/master/install.py | python3
+python3 -m pip install https://github.com/cs142ta/zygrader/archive/master.zip
+```
 
-# Run
-$ python3 -m zygrader
+Zygrader is installed to `~/.local/bin/zygrader`. If you do not already have
+`~/.local/bin` on your PATH then run the following:
 
-# To run as `zygrader` rather than `python3 -m zygrader` you must add an alias.
-# To add the alias every time you open a shell, use the following command
-$ echo "alias zygrader='python3 -m zygrader'" >> ~/.bashrc
+```
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
+```
 
-# If you want to use zygrader over ssh (or in other login shells), you need the alias to be created when your .bash_profile is read.
-# There are two ways to do this:
-  # The following command will make your .bash_profile source the .bashrc file
-  $ echo -e 'if [ -f ~/.bashrc ]; then\n\t. ~/.bashrc\nfi' >> ~/.bash_profile
+The following may also be run if you would like to use zygrader over ssh.
 
-  # You can also put the same command as above into the .bash_profile using the following command
-  $ echo "alias zygrader='python3 -m zygrader'" >> ~/.bash_profile
+```
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bash_profile
+```
 
-# Then you can run as
-$ zygrader
+To start zygrader run the following in a terminal
+
+```
+zygrader
+```
+
+If you would rather not modify your PATH you can run zygrader through python
+
+```
+python3 -m zygrader
 ```
 
 To uninstall zygrader run the following:
+
 ```
-$ python3 -m pip uninstall zygrader
+python3 -m pip uninstall zygrader
 ```
 
 ## Setup
@@ -86,29 +94,29 @@ for developing zygrader. To solve these issues, virtual environments are used.
 
 Install virtualenv
 ```
-$ python3 -m pip install --user virtualenv
+python3 -m pip install --user virtualenv
 ```
 
 Create the virtual environment
 ```
-$ python3 -m venv ~/.virtualenvs/zygrader
+python3 -m venv ~/.virtualenvs/zygrader
 ```
 
 Enter the virtual environment
 ```
-$ source ~/.virtualenvs/zygrader/bin/activate
+source ~/.virtualenvs/zygrader/bin/activate
 ```
 
 You must first install zygrader in _develop mode_ before running from source. Run the following from the zygrader repository (installing needed deps).
 ```
-$ pip3 install requests yapf
-$ pip3 install -e .
+pip3 install requests yapf
+pip3 install -e .
 ```
 
 zygrader can be run directly from the main file, or as a module during development (supports alias)
 ```
-$ python3 zygrader/main.py
-$ python3 -m zygrader
+python3 zygrader/main.py
+python3 -m zygrader
 ```
 
 To exit the virtual environment
@@ -138,12 +146,12 @@ VERSION variable in `shared.py` exactly.
 
 **Example:** _pushing a major version 3.6.0_
 ```
-$ ./push_update.sh 3.6.0
+./push_update.sh 3.6.0
 ```
 
 **Example:** _pushing a buxfix update to version 3.5.0_
 ```
-$ ./push_update.sh 3.5.1
+./push_update.sh 3.5.1
 ```
 
 ## Environment (VSCode)

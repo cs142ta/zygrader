@@ -16,4 +16,9 @@ setuptools.setup(
     package_data={
         "": ["*.txt"],
     },
+    entry_points={
+        "console_scripts": [
+            "zygrader = zygrader.main:start",
+        ]
+    },
 )
