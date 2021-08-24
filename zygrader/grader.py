@@ -267,7 +267,7 @@ def is_lab_available(use_locks, student, lab):
             "Please check to make sure it hasn't already been graded"
         ]
         popup = ui.layers.OptionsPopup("Recently Graded", msg)
-        popup.add_option("Confirm")
+        popup.add_option("Proceed to Grade")
         window.run_layer(popup)
         if popup.get_selected() == "Close":
             return False
