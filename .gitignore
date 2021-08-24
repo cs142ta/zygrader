@@ -1,4 +1,9 @@
+bin/
+lib/
+share/
 __pycache__
 .vscode
+lib64
 env
 *egg-info*
+pyvenv.cfg
