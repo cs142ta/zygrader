@@ -1,9 +1,11 @@
 """Lock files are created to prevent multiple people from grading an assignment simultaneously."""
 
+import collections
 import csv
-import datetime
 import getpass
 import os
+import time
+from datetime import datetime, timedelta
 
 from zygrader import logger
 from zygrader.config.shared import SharedData
@@ -34,7 +36,7 @@ def log(name, lab, event_type, lock="LOCK"):
 
     lock_log = get_lock_log_path()
     # Get timestamp
-    timestamp = datetime.datetime.now().isoformat()
+    timestamp = datetime.now().isoformat()
 
     with open(lock_log, "a", newline='') as _log:
         # Use csv to properly write names with commas in them
@@ -43,6 +45,41 @@ def log(name, lab, event_type, lock="LOCK"):
              getpass.getuser(), lock])
 
     logger.log(f"{name},{lab},{lock},{event_type}")
+
+
+def was_recently_locked(student: Student, lab: Lab, range: int = 10) -> tuple:
+    """
+    Check the lock log for a previous lock for the given name
+    and lab. The range is in minutes.
+    """
+    lock_log = get_lock_log_path()
+
+    oldest_allowed = datetime.now() - timedelta(minutes=range)
+    Row = collections.namedtuple("Row", ["time", "student", "lab", "ta"])
+
+    # Collect all rows within the time range
+    rows = []
+    with open(lock_log, "r") as log:
+        for line in csv.reader(log):
+            row = Row(datetime.fromisoformat(line[0]), line[2], line[3],
+                      line[4])
+
+            if row.time > oldest_allowed:
+                rows.append(row)
+
+    # No one was graded in the time range
+    if not rows:
+        return False, None, None
+
+    # Check if the student and lab are in the time range
+    student_name = student.get_unique_name()
+    lab_name = lab.get_unique_name()
+    for row in reversed(rows):
+        if row.student == student_name and row.lab == lab_name:
+            ts = datetime.strftime(row.time, "%I:%M %p - %m-%d-%Y")
+            return True, ts, row.ta
+
+    return False, None, None
 
 
 def get_lock_file_path(student: Student, lab: Lab = None):
@@ -104,9 +141,9 @@ def lock(student: Student, lab: Lab = None):
     open(lock, "w").close()
 
     if lab:
-        log(student.full_name, lab.name, "LAB")
+        log(student.get_unique_name(), lab.get_unique_name(), "LAB")
     else:
-        log(student.full_name, "N/A", "EMAIL")
+        log(student.get_unique_name(), "N/A", "EMAIL")
 
 
 def unlock(student: Student, lab: Lab = None):
@@ -117,9 +154,9 @@ def unlock(student: Student, lab: Lab = None):
     if os.path.exists(lock):
         os.remove(lock)
     if lab:
-        log(student.full_name, lab.name, "LAB", "UNLOCK")
+        log(student.get_unique_name(), lab.get_unique_name(), "LAB", "UNLOCK")
     else:
-        log(student.full_name, "N/A", "EMAIL", "UNLOCK")
+        log(student.get_unique_name(), "N/A", "EMAIL", "UNLOCK")
 
 
 def unlock_all_labs_by_grader(username: str):
