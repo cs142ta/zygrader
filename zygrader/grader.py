@@ -235,17 +235,6 @@ def is_lab_available(use_locks, student, lab):
 
     window = ui.get_window()
 
-    if data.lock.is_locked(student, lab):
-        netid = data.lock.get_locked_netid(student, lab)
-
-        # If being graded by the user who locked it, allow grading
-        if netid != getpass.getuser():
-            name = data.netid_to_name(netid)
-            msg = [f"This student is already being graded by {name}"]
-            popup = ui.layers.Popup("Student Locked", msg)
-            window.run_layer(popup)
-            return False
-
     if data.flags.is_submission_flagged(student, lab):
         flag_message = data.flags.get_flag_message(student, lab)
         msg = [
@@ -281,6 +270,21 @@ def is_lab_available(use_locks, student, lab):
         popup.add_option("Confirm")
         window.run_layer(popup)
         if popup.get_selected() == "Close":
+            return False
+
+    # There is a very small chance that two TAs are looking through the previous
+    # popups at the same time. If that is the case, we want to ensure the check
+    # for locks occurs last, otherwise the small window of time when both are
+    # looking at the popups gives a chance to bypass the locks.
+    if data.lock.is_locked(student, lab):
+        netid = data.lock.get_locked_netid(student, lab)
+
+        # If being graded by the user who locked it, allow grading
+        if netid != getpass.getuser():
+            name = data.netid_to_name(netid)
+            msg = [f"This student is already being graded by {name}"]
+            popup = ui.layers.Popup("Student Locked", msg)
+            window.run_layer(popup)
             return False
 
     return True
