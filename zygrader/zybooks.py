@@ -275,7 +275,7 @@ class Zybooks:
     def __get_submission_most_recent(self, submissions) -> dict:
         return submissions[-1]
 
-    def download_submission(self, part_id, user_id, options,
+    def __download_submission(self, part_id, user_id, options,
                             submission_index: int) -> dict:
         """Used for grading. Download a single submission and return information for grading.
         This is used together with self.download_assignment, as some labs have multiple submission "parts"
@@ -334,7 +334,7 @@ class Zybooks:
             "name": part["name"],
             "id": str(part["id"])
         }
-        submission = self.download_submission(part["id"], user_id,
+        submission = self.__download_submission(part["id"], user_id,
                                               assignment.options,
                                               submission_index)
 
