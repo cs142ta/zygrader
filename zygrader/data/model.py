@@ -213,6 +213,26 @@ class Submission(Iterable):
                 self.response["score"] += part["score"]
                 self.response["max_score"] += part["max_score"]
 
+        # Concatenate test results
+        # There is a small chance that the test results may have changed
+        # between student submissions, so it is best to recalculate every time.
+        lines = []
+        for part in self.response["parts"]:
+            if part["code"] != Zybooks.NO_SUBMISSION:
+                lines.append({
+                    "name":
+                    f"{self.get_part_identifier(part)} {part['score']}/{part['max_score']}",
+                    "tests": part["tests"]
+                })
+            else:
+                lines.append({
+                    "name":
+                    f"{self.get_part_identifier(part)} (No Submission)",
+                    "tests": []
+                })
+
+        self.test_results = lines
+
         self.files_directory = self.read_files(self.response)
 
         self.create_submission_string(self.response)
@@ -244,6 +264,9 @@ class Submission(Iterable):
                 "If the student has an exception, pick a submission to grade.",
             ]
             return
+
+        # A list of test results for each part
+        self.test_results = []
 
         self.construct_submission()
 
