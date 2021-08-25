@@ -101,7 +101,7 @@ class Zybooks:
 
     def get_roster(self):
         """Download the roster of regular and temporary students. TAs can be added by adding "TA" to the roles array"""
-        roles = '["Student","Temporary"]'
+        roles = '["Student","Temporary","TA"]'
         roster_url = f"https://zyserver.zybooks.com/v1/zybook/{SharedData.CLASS_CODE}/roster?zybook_roles={roles}"
 
         payload = {"auth_token": Zybooks.token}
