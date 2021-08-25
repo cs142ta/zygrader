@@ -237,6 +237,31 @@ class Zybooks:
 
         return score
 
+    def __get_test_results(self, submission: dict) -> dict:
+        """
+        Collects test results including the names and scores for each test case.
+        Also sums the max and actual scores.
+        """
+
+        # if there is a compile error the test results are not populated
+        if submission["error"] or "compile_error" in submission["results"]:
+            return {"score": 0, "max_score": 0, "results": []}
+
+        results = submission["results"]
+        test_results = results["test_results"]
+        test_bench = results["config"]["test_bench"]
+
+        score = 0
+        max_score = 0
+        tests = []
+        for result, bench in zip(test_results, test_bench):
+            score += result["score"]
+            max_score += bench["max_score"]
+            tests.append(
+                f"{bench['label']} {result['score']}/{bench['max_score']}")
+
+        return {"score": score, "max_score": max_score, "tests": tests}
+
     def get_all_submissions(self, part_id, user_id):
         """Get the JSON representing all submissions of a given lab"""
         class_code = SharedData.CLASS_CODE
@@ -276,7 +301,7 @@ class Zybooks:
         return submissions[-1]
 
     def __download_submission(self, part_id, user_id, options,
-                            submission_index: int) -> dict:
+                              submission_index: int) -> dict:
         """Used for grading. Download a single submission and return information for grading.
         This is used together with self.download_assignment, as some labs have multiple submission "parts"
         (such as midterms)
@@ -315,8 +340,10 @@ class Zybooks:
         if "compile_error" in submission["results"]:
             response["code"] = Zybooks.COMPILE_ERROR
 
-        response["score"] = self._get_score(submission)
-        response["max_score"] = self._get_max_score(submission)
+        test_results = self.__get_test_results(submission)
+        response["score"] = test_results["score"]
+        response["max_score"] = test_results["max_score"]
+        response["tests"] = test_results["tests"]
 
         response["date"] = self.get_time_string(submission)
         response["zip_url"] = submission["zip_location"]
@@ -335,14 +362,15 @@ class Zybooks:
             "id": str(part["id"])
         }
         submission = self.__download_submission(part["id"], user_id,
-                                              assignment.options,
-                                              submission_index)
+                                                assignment.options,
+                                                submission_index)
 
         if submission["code"] is not Zybooks.NO_SUBMISSION:
             response_part["score"] = submission["score"]
             response_part["max_score"] = submission["max_score"]
             response_part["zip_url"] = submission["zip_url"]
             response_part["date"] = submission["date"]
+            response_part["tests"] = submission["tests"]
 
             if submission["code"] is Zybooks.COMPILE_ERROR:
                 response_part["code"] = Zybooks.COMPILE_ERROR
