@@ -245,7 +245,7 @@ class Zybooks:
 
         # if there is a compile error the test results are not populated
         if submission["error"] or "compile_error" in submission["results"]:
-            return {"score": 0, "max_score": 0, "results": []}
+            return {"score": 0, "max_score": 0, "tests": []}
 
         results = submission["results"]
         test_results = results["test_results"]
