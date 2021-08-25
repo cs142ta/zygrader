@@ -220,9 +220,17 @@ class Submission(Iterable):
         for part in self.response["parts"]:
             if part["code"] != Zybooks.NO_SUBMISSION:
                 lines.append({
-                    "name": self.get_part_identifier(part),
+                    "name":
+                    f"{self.get_part_identifier(part)} {part['score']}/{part['max_score']}",
                     "tests": part["tests"]
                 })
+            else:
+                lines.append({
+                    "name":
+                    f"{self.get_part_identifier(part)} (No Submission)",
+                    "tests": []
+                })
+
         self.test_results = lines
 
         self.files_directory = self.read_files(self.response)
