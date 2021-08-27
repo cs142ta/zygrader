@@ -136,6 +136,24 @@ def pick_submission(submission_popup: ui.layers.OptionsPopup,
     set_submission_message(submission_popup, submission)
 
 
+def view_test_io(test: dict):
+    # create a tempfile name for this test case
+    test_io_name = f"{test['label']}".replace(" ", "-").lower()
+
+    # format the test case input and output into a nice string
+    io = [
+        f"{test['name']}\n",
+        "Input:",
+        f"{test['input']}\n",
+        "Output:",
+        f"{test['output']}\n",
+        "Expected:",
+        f"{test['expected']}",
+    ]
+
+    utils.view_string("\n".join(io), test_io_name)
+
+
 def view_test_results(submission: model.Submission):
     """View the test results for all parts"""
     window = ui.get_window()
@@ -154,7 +172,9 @@ def view_test_results(submission: model.Submission):
     for part in submission.test_results:
         row = popup.add_row_parent(part["name"])
         for test in part["tests"]:
-            row.add_row_text(test)
+            subrow = row.add_row_text(test["name"], view_test_io, test)
+            if test["type"] == "unit_test":
+                subrow.set_disabled()
 
     window.run_layer(popup)
 

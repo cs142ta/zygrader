@@ -265,7 +265,28 @@ class Zybooks:
             score += result["score"]
             max_score += bench["max_score"]
             score_str = f"{result['score']}/{bench['max_score']}"
-            tests.append(f"{bench['label']:{label_len}} {score_str:>5}")
+
+            if bench["name"] == "unit_test":
+                test_input = ""
+                expected = ""
+                output = ""
+                type = "unit_test"
+            else:
+                test_input = bench["options"]["input"]
+                expected = bench["options"]["output"]
+                output = result["output"]
+                type = "output_test"
+
+            test = {
+                "type": type,
+                "label": f"{bench['label']}",
+                "name": f"{bench['label']:{label_len}} {score_str:>5}",
+                "input": test_input,
+                "output": output,
+                "expected": expected,
+            }
+
+            tests.append(test)
 
         return {"score": score, "max_score": max_score, "tests": tests}
 
