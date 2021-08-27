@@ -139,6 +139,15 @@ def pick_submission(submission_popup: ui.layers.OptionsPopup,
 def view_test_results(submission: model.Submission):
     """View the test results for all parts"""
     window = ui.get_window()
+
+    # Ensure the student has submitted
+    if submission.flag & model.SubmissionFlag.NO_SUBMISSION:
+        popup = ui.layers.Popup("No Submission", [
+            "Cannot vew test cases because the student did not submit",
+        ])
+        window.run_layer(popup)
+        return
+
     popup = ui.layers.ListLayer("Test Results", popup=True)
     popup.set_exit_text("Close")
 
@@ -148,6 +157,7 @@ def view_test_results(submission: model.Submission):
             row.add_row_text(test)
 
     window.run_layer(popup)
+
 
 def view_diff(first: model.Submission, second: model.Submission):
     """View a diff of the two submissions"""
@@ -385,8 +395,7 @@ def student_select_fn(student, lab, use_locks):
         popup.add_option(
             "Pick Submission",
             lambda: pick_submission(popup, lab, student, submission))
-        popup.add_option("Test Results",
-                         lambda: view_test_results(submission))
+        popup.add_option("Test Results", lambda: view_test_results(submission))
         popup.add_option("Pair Programming",
                          lambda: grade_pair_programming(submission, use_locks))
         if submission.flag & data.model.SubmissionFlag.DIFF_PARTS:
