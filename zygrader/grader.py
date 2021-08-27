@@ -254,6 +254,9 @@ def is_lab_available(use_locks, student, lab):
             return False
         elif choice == "Unflag":
             data.flags.unflag_submission(student, lab)
+        elif choice == "View":
+            # Make sure that "View" is an option, but still do the recent check locks
+            pass
         else:
             return False
 
