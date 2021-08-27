@@ -199,6 +199,31 @@ class Submission(Iterable):
 
         self.construct_submission()
 
+    def __format_test_results(self) -> list:
+        # first calculate the longest header
+        header_len = 0
+        for part in self.response["parts"]:
+            name_len = len(self.get_part_identifier(part))
+            if name_len > header_len:
+                header_len = name_len
+
+        lines = []
+        for part in self.response["parts"]:
+            if part["code"] != Zybooks.NO_SUBMISSION:
+                score_str = f"{part['score']}/{part['max_score']}"
+                lines.append({
+                    "name":
+                    f"{self.get_part_identifier(part):{header_len}} {score_str:>5}",
+                    "tests": part["tests"]
+                })
+            else:
+                lines.append({
+                    "name":
+                    f"{self.get_part_identifier(part):{header_len}} (No Submission)",
+                    "tests": []
+                })
+        return lines
+
     def construct_submission(self):
         # An assignment could have NO_SUBMISSION meaning it was late.
         # But students may have exceptions so this code is reached after picking
@@ -213,25 +238,10 @@ class Submission(Iterable):
                 self.response["score"] += part["score"]
                 self.response["max_score"] += part["max_score"]
 
-        # Concatenate test results
+        # Create a list of test results.
         # There is a small chance that the test results may have changed
         # between student submissions, so it is best to recalculate every time.
-        lines = []
-        for part in self.response["parts"]:
-            if part["code"] != Zybooks.NO_SUBMISSION:
-                lines.append({
-                    "name":
-                    f"{self.get_part_identifier(part)} {part['score']}/{part['max_score']}",
-                    "tests": part["tests"]
-                })
-            else:
-                lines.append({
-                    "name":
-                    f"{self.get_part_identifier(part)} (No Submission)",
-                    "tests": []
-                })
-
-        self.test_results = lines
+        self.test_results = self.__format_test_results()
 
         self.files_directory = self.read_files(self.response)
 

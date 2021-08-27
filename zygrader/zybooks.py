@@ -251,14 +251,21 @@ class Zybooks:
         test_results = results["test_results"]
         test_bench = results["config"]["test_bench"]
 
+        # find max test bench label name
+        label_len = 0
+        for bench in test_bench:
+            name_len = len(bench["label"])
+            if name_len > label_len:
+                label_len = name_len
+
         score = 0
         max_score = 0
         tests = []
         for result, bench in zip(test_results, test_bench):
             score += result["score"]
             max_score += bench["max_score"]
-            tests.append(
-                f"{bench['label']} {result['score']}/{bench['max_score']}")
+            score_str = f"{result['score']}/{bench['max_score']}"
+            tests.append(f"{bench['label']:{label_len}} {score_str:>5}")
 
         return {"score": score, "max_score": max_score, "tests": tests}
 
