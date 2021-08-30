@@ -1,5 +1,13 @@
 # Try to keep lines shorter than 70 characters
 
+5.11.0
+* Simplified and standardized the install process
+* Added a Test Case viewer to the grader. This can be
+  used to view the full breakdown, including input and
+  output, for a submission.
+* Added logic to prevent two TAs from grading the same
+  submission within 10 minutes.
+
 5.10.0
 * Add "Report High Scoring Students" to Admin Menu.
 
