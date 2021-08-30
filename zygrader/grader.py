@@ -305,7 +305,9 @@ def is_lab_available(use_locks, student, lab):
 
     # The submission was graded within the last 10 minutes, prompt
     # the TA to confirm that they haven't been graded already.
-    recently_locked, ts, netid = data.lock.was_recently_locked(student, lab)
+    current_netid = getpass.getuser()
+    recently_locked, ts, netid = data.lock.was_recently_locked(
+        student, lab, current_netid)
     if recently_locked:
         name = data.netid_to_name(netid)
         msg = [

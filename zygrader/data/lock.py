@@ -47,10 +47,14 @@ def log(name, lab, event_type, lock="LOCK"):
     logger.log(f"{name},{lab},{lock},{event_type}")
 
 
-def was_recently_locked(student: Student, lab: Lab, range: int = 10) -> tuple:
+def was_recently_locked(student: Student,
+                        lab: Lab,
+                        netid: str,
+                        range: int = 10) -> tuple:
     """
     Check the lock log for a previous lock for the given name
-    and lab. The range is in minutes.
+    and lab. The range is in minutes. If the lock was made by the same ta as
+    the current grader, then ignore the lock.
     """
     lock_log = get_lock_log_path()
 
@@ -76,6 +80,12 @@ def was_recently_locked(student: Student, lab: Lab, range: int = 10) -> tuple:
     lab_name = lab.get_unique_name()
     for row in reversed(rows):
         if row.student == student_name and row.lab == lab_name:
+
+            # this was locked by the same TA who recently locked it,
+            # so ignore the lock.
+            if row.ta == netid:
+                continue
+
             ts = datetime.strftime(row.time, "%I:%M %p - %m-%d-%Y")
             return True, ts, row.ta
 
