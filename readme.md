@@ -36,6 +36,14 @@ The following may also be run if you would like to use zygrader over ssh.
 echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bash_profile
 ```
 
+You must either close the terminal or source the file(s) after making modifications
+in the previous commands.
+
+```
+source ~/.bashrc
+source ~/.bash_profile
+```
+
 To start zygrader run the following in a terminal
 
 ```
