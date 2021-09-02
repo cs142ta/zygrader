@@ -78,7 +78,7 @@ def logout():
     window = ui.get_window()
 
     # Clear account information
-    preferences.set("token", "")
+    preferences.set("refresh_token", "")
 
     msg = [
         "You have been logged out. Would you like to sign in with different credentials?",
