@@ -266,6 +266,19 @@ def edit_flag(flag_string: str, student: model.Student, lab: model.Lab):
     flag_submission(lab, student, tag_text, tag_type)
 
 
+def show_currently_grading_popup(window, student, lab):
+    netid = data.lock.get_locked_netid(student, lab)
+
+    # If being graded by the user who locked it, allow grading
+    if netid != getpass.getuser():
+        name = data.netid_to_name(netid)
+        msg = [f"This student is already being graded by {name}"]
+        popup = ui.layers.Popup("Student Locked", msg)
+        window.run_layer(popup)
+        return False
+    return True
+
+
 def is_lab_available(use_locks, student, lab):
     """
     Check if the student's lab is available for grading
@@ -303,6 +316,11 @@ def is_lab_available(use_locks, student, lab):
         else:
             return False
 
+    # Check if this submission is currently graded by another TA
+    if data.lock.is_locked(student, lab) and not show_currently_grading_popup(
+            window, student, lab):
+        return False
+
     # The submission was graded within the last 10 minutes, prompt
     # the TA to confirm that they haven't been graded already.
     current_netid = getpass.getuser()
@@ -325,15 +343,7 @@ def is_lab_available(use_locks, student, lab):
     # for locks occurs last, otherwise the small window of time when both are
     # looking at the popups gives a chance to bypass the locks.
     if data.lock.is_locked(student, lab):
-        netid = data.lock.get_locked_netid(student, lab)
-
-        # If being graded by the user who locked it, allow grading
-        if netid != getpass.getuser():
-            name = data.netid_to_name(netid)
-            msg = [f"This student is already being graded by {name}"]
-            popup = ui.layers.Popup("Student Locked", msg)
-            window.run_layer(popup)
-            return False
+        return show_currently_grading_popup(window, student, lab)
 
     return True
 
