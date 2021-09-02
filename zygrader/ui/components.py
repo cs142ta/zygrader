@@ -868,16 +868,16 @@ class FilteredList(ScrollableList):
             curses.curs_set(0)
 
     def resize(self, rows, cols):
-        self.rows = rows - 1
+        self._rows = rows - 1
         self.cols = cols
 
         try:
             self.window.mvwin(self.y, self.x)
-            self.text_input.mvwin(self.rows, 0)
+            self.text_input.mvwin(self._rows, 0)
         except:
             pass
 
-        resize_window(self.window, self.rows - 1, self.cols)
+        resize_window(self.window, self._rows - 1, self.cols)
         resize_window(self.text_input, 1, self.cols)
 
 
