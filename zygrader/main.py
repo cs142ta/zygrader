@@ -1,6 +1,5 @@
 """Zygrader: Main menu for zygrader"""
 import argparse
-import getpass
 import os
 import signal
 import sys
@@ -16,7 +15,7 @@ def lock_cleanup():
     # If terminating before shared directories are initialized, the folders would be
     # created in the current directory when removing locks. See #72 for more details.
     if SharedData.is_initialized():
-        data.lock.unlock_all_labs_by_grader(getpass.getuser())
+        data.lock.unlock_all_labs_by_grader(utils.get_username())
 
 
 def sighup_handler(signum, frame):
@@ -228,7 +227,7 @@ def start():
     # Change directory to the default output dir
     os.chdir(os.path.expanduser(preferences.get("output_dir")))
 
-    name = data.netid_to_name(getpass.getuser())
+    name = data.netid_to_name(utils.get_username())
 
     # Create a zygrader window, callback to main function
     ui.Window(main, f"zygrader {SharedData.VERSION}", name, args)

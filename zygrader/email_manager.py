@@ -1,7 +1,6 @@
 """Email: Manage locking of student emails from zygrader to prevent double-answering."""
 
 import curses
-import getpass
 
 from zygrader import data, grader, ui, utils
 from zygrader.ui import colors
@@ -17,7 +16,7 @@ def lock_student_callback(student: data.Student):
 
     if data.lock.is_locked(student):
         netid = data.lock.get_locked_netid(student)
-        if netid != getpass.getuser():
+        if netid != utils.get_username():
             name = data.netid_to_name(netid)
             msg = [f"{name} is replying to {student.first_name}'s email"]
             popup = ui.layers.Popup("Student Locked", msg)

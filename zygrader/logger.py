@@ -3,10 +3,10 @@
 These allow basic logging of data to a log.txt file in the logs directory
 """
 import datetime
-import getpass
 import os
 
 from zygrader.config.shared import SharedData
+from zygrader import utils
 
 # Log types
 INFO = "INFO"
@@ -23,7 +23,7 @@ def log(*args, type=INFO):
 
     with open(get_global_lock_path(), "a") as _log:
         _log.write(
-            f"{type},{getpass.getuser()},{datetime.datetime.now().isoformat()},"
+            f"{type},{utils.get_username()},{datetime.datetime.now().isoformat()},"
         )
         for item in args:
             _log.write(f"{item},")

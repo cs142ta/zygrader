@@ -1,6 +1,5 @@
 """Grader: Menus and popups for grading and pair programming"""
 import curses
-import getpass
 
 from zygrader import data, ui, utils
 from zygrader.config import preferences
@@ -270,7 +269,7 @@ def show_currently_grading_popup(window, student, lab):
     netid = data.lock.get_locked_netid(student, lab)
 
     # If being graded by the user who locked it, allow grading
-    if netid != getpass.getuser():
+    if netid != utils.get_username():
         name = data.netid_to_name(netid)
         msg = [f"This student is already being graded by {name}"]
         popup = ui.layers.Popup("Student Locked", msg)
@@ -323,7 +322,7 @@ def is_lab_available(use_locks, student, lab):
 
     # The submission was graded within the last 10 minutes, prompt
     # the TA to confirm that they haven't been graded already.
-    current_netid = getpass.getuser()
+    current_netid = utils.get_username()
     recently_locked, ts, netid = data.lock.was_recently_locked(
         student, lab, current_netid)
     if recently_locked:

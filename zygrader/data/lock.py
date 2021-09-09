@@ -2,12 +2,11 @@
 
 import collections
 import csv
-import getpass
 import os
 import time
 from datetime import datetime, timedelta
 
-from zygrader import logger
+from zygrader import logger, utils
 from zygrader.config.shared import SharedData
 
 from .model import Lab, Student
@@ -42,7 +41,7 @@ def log(name, lab, event_type, lock="LOCK"):
         # Use csv to properly write names with commas in them
         csv.writer(_log).writerow(
             [timestamp, event_type, name, lab,
-             getpass.getuser(), lock])
+             utils.get_username(), lock])
 
     logger.log(f"{name},{lab},{lock},{event_type}")
 
@@ -94,7 +93,7 @@ def was_recently_locked(student: Student,
 
 def get_lock_file_path(student: Student, lab: Lab = None):
     """Return path for lock file"""
-    username = getpass.getuser()
+    username = utils.get_username()
 
     # We can safely store both lab+student and lab locks in the
     # Same directory

@@ -6,6 +6,7 @@ General algorithms/utilities to be shared between modules
 
 import curses
 import difflib
+import getpass
 import os
 import subprocess
 import tempfile
@@ -15,6 +16,14 @@ from zygrader import data, ui
 from zygrader.zybooks import Zybooks
 
 OPENED_DIRECTORES = []
+
+
+def get_username() -> str:
+    """
+    Get the username of a TA (env $USER)
+    Any . characters are removed because . is used as a separator for lock filenames
+    """
+    return getpass.getuser().replace(".", "")
 
 
 def create_tempdir(prefix="zy") -> str:
