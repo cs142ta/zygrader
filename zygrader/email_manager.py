@@ -11,17 +11,51 @@ def view_email_submissions(student: data.Student):
     grader.grade(use_locks=False, student=student)
 
 
+def show_currently_locked_popup(window, student):
+    netid = data.lock.get_locked_netid(student)
+
+    # Locked by a different user
+    if netid != utils.get_username():
+        name = data.netid_to_name(netid)
+        msg = [f"{name} is replying to {student.first_name}'s email"]
+        popup = ui.layers.Popup("Student Locked", msg)
+        window.run_layer(popup)
+        return False
+    # Locked by current user
+    return True
+
+
 def lock_student_callback(student: data.Student):
     window = ui.get_window()
 
-    if data.lock.is_locked(student):
-        netid = data.lock.get_locked_netid(student)
-        if netid != utils.get_username():
-            name = data.netid_to_name(netid)
-            msg = [f"{name} is replying to {student.first_name}'s email"]
-            popup = ui.layers.Popup("Student Locked", msg)
-            window.run_layer(popup)
+    if data.lock.is_locked(student) and not show_currently_locked_popup(
+            window, student):
+        return
+
+    netid = utils.get_username()
+    recently_locked, ts, netid = data.lock.was_recently_locked(
+        student, None, netid)
+
+    if recently_locked:
+        name = data.netid_to_name(netid)
+        msg = [
+            f"This email may have been replied to already by {name} at {ts}.",
+            "Please check to make sure no one has yet replied.",
+            "(Or the student has sent a new email within the last 10 minutes making this a false alarm)",
+        ]
+        popup = ui.layers.OptionsPopup("Recently Emailed", msg)
+        popup.add_option("Proceed to Lock")
+        window.run_layer(popup)
+        if popup.get_selected() == "Close":
             return
+
+    # Just like in grader.py, there is a small chance that two TAs are
+    # looking at the "recently locked" popup, and we need to check here
+    # in case one has locked the email while the other was still in the
+    # popup.
+    if data.lock.is_locked(student) and not show_currently_locked_popup(
+            window, student):
+        return
 
     try:
         data.lock.lock(student)

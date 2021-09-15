@@ -5,6 +5,7 @@ import csv
 import os
 import time
 from datetime import datetime, timedelta
+from typing import Union
 
 from zygrader import logger, utils
 from zygrader.config.shared import SharedData
@@ -47,13 +48,14 @@ def log(name, lab, event_type, lock="LOCK"):
 
 
 def was_recently_locked(student: Student,
-                        lab: Lab,
+                        lab: Union[Lab, None],
                         netid: str,
                         range: int = 10) -> tuple:
     """
     Check the lock log for a previous lock for the given name
     and lab. The range is in minutes. If the lock was made by the same ta as
     the current grader, then ignore the lock.
+    If lab is None, then Email locks are checked
     """
     lock_log = get_lock_log_path()
 
@@ -76,9 +78,10 @@ def was_recently_locked(student: Student,
 
     # Check if the student and lab are in the time range
     student_name = student.get_unique_name()
-    lab_name = lab.get_unique_name()
+    lab_name = lab.get_unique_name() if lab else None
     for row in reversed(rows):
-        if row.student == student_name and row.lab == lab_name:
+        # ignore labs if only checking emails
+        if row.student == student_name and (not lab or row.lab == lab_name):
 
             # this was locked by the same TA who recently locked it,
             # so ignore the lock.
