@@ -1,5 +1,13 @@
 # Try to keep lines shorter than 70 characters
 
+5.12.0
+* Added a check to prevent double-replies to student emails. If a
+  student was locked within the last 2 minutes, a prompt will ask you
+  to confirm that the email really does need a reply.
+* Added TAs to the roster, so all TA code is visible in zygrader.
+* Fixed lists not resizing vertically on terminal resize.
+* Fixed a bug when . characters were present in usernames.
+
 5.11.0
 * Simplified and standardized the install process
 * Added a Test Case viewer to the grader. This can be
