@@ -34,7 +34,7 @@ def lock_student_callback(student: data.Student):
 
     netid = utils.get_username()
     recently_locked, ts, netid = data.lock.was_recently_locked(
-        student, None, netid)
+        student, None, netid, range=2)
 
     if recently_locked:
         name = data.netid_to_name(netid)
