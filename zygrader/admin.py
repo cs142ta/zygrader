@@ -575,26 +575,27 @@ def end_of_semester_tools():
     window.register_layer(menu)
 
 
+HM_RANGE_FORMAT_STR = "%H hours, %M minutes"
+
+
 def set_recently_locked_range(row: ui.layers.Row, name: str):
     window = ui.get_window()
-    popup = ui.layers.TextInputLayer(f"Set {name} recently locked range")
+    duration_selector = ui.layers.DatetimeSpinner(
+        f"Set {name} recently locked range")
 
     original = SharedData.RECENT_LOCK_GRADES if name == "grades" else SharedData.RECENT_LOCK_EMAILS
+    duration_selector.set_initial_time(
+        datetime.time(hour=original // 60, minute=original % 60))
+    duration_selector.set_format_str(HM_RANGE_FORMAT_STR)
 
-    popup.set_text(str(original))
-    window.run_layer(popup)
+    window.run_layer(duration_selector)
 
-    try:
-        new_range = int(popup.get_text())
-        SharedData.set_recently_locked(name, new_range)
-        row.set_row_text(
-            f"{'Grader:' if name == 'grades' else 'Email: '} {new_range} minutes"
-        )
-        SharedData.initialize_recently_locked()
-    except ValueError:
-        popup = ui.layers.Popup("Error")
-        popup.set_message(["Invalid input"])
-        window.run_layer(popup)
+    new_range_time = duration_selector.get_time()
+    new_range = new_range_time.hour * 60 + new_range_time.minute
+    SharedData.set_recently_locked(name, new_range)
+    row.set_row_text(f"{'Grader:' if name == 'grades' else 'Email: '}"
+                     f" {new_range_time.strftime(HM_RANGE_FORMAT_STR)}")
+    SharedData.initialize_recently_locked()
 
 
 class ClassCodeRadioGroup(ui.layers.RadioGroup):
@@ -617,9 +618,15 @@ def admin_config():
 
     # Recently locked time ranges
     row = popup.add_row_parent("Recently Locked Ranges")
-    sub = row.add_row_text(f"Grader: {SharedData.RECENT_LOCK_GRADES} minutes")
+    grade_range = datetime.time(hour=SharedData.RECENT_LOCK_GRADES // 60,
+                                minute=SharedData.RECENT_LOCK_GRADES % 60)
+    sub = row.add_row_text(
+        f"Grader: {grade_range.strftime(HM_RANGE_FORMAT_STR)}")
     sub.set_callback_fn(set_recently_locked_range, sub, "grades")
-    sub = row.add_row_text(f"Email:  {SharedData.RECENT_LOCK_EMAILS} minutes")
+    email_range = datetime.time(hour=SharedData.RECENT_LOCK_EMAILS // 60,
+                                minute=SharedData.RECENT_LOCK_EMAILS % 60)
+    sub = row.add_row_text(
+        f"Email:  {email_range.strftime(HM_RANGE_FORMAT_STR)}")
     sub.set_callback_fn(set_recently_locked_range, sub, "emails")
 
     # Shared Class Code
