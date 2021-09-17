@@ -11,8 +11,14 @@ class SharedData:
     VERSION = LooseVersion("5.12.0")
 
     # Current class code (shared)
+    # Set from the admin > config menu for all users
     # Can be overridden on a user level
     CLASS_CODE = ""
+
+    # Defaults for recently locked ranges in minutes for grading and emails
+    # Can be configured from the admin > config menu
+    RECENT_LOCK_GRADES = 10
+    RECENT_LOCK_EMAILS = 2
 
     # The zygrader data exists in a hidden folder created by the --init-data-dir flag
     # This folder contains the shared configuration and the folders for each
@@ -60,6 +66,8 @@ class SharedData:
             print("No shared configuration exists")
             return False
 
+        cls.initialize_recently_locked()
+
         # Initialize current class
         current_class_code = cls.get_current_class_code()
 
@@ -69,6 +77,21 @@ class SharedData:
         cls.DIRECTORIES_INITIALIZED = True
 
         return True
+
+    @classmethod
+    def initialize_recently_locked(cls):
+        # If the settings do not exist save the defaults to config
+        # otherwise load from the config file
+        grades = cls.get_recently_locked("grades")
+        if not grades:
+            cls.set_recently_locked("grades", cls.RECENT_LOCK_GRADES)
+        else:
+            cls.RECENT_LOCK_GRADES = grades
+        emails = cls.get_recently_locked("emails")
+        if not emails:
+            cls.set_recently_locked("emails", cls.RECENT_LOCK_EMAILS)
+        else:
+            cls.RECENT_LOCK_EMAILS = emails
 
     @classmethod
     def initialize_class_data(cls, class_code):
@@ -169,6 +192,19 @@ class SharedData:
             return False
 
         return True
+
+    @classmethod
+    def get_recently_locked(cls, name: str):
+        name = f"{name}_recently_locked"
+        config = cls.get_shared_config()
+        return config.get(name, None)
+
+    @classmethod
+    def set_recently_locked(cls, name: str, duration: int):
+        name = f"{name}_recently_locked"
+        config = cls.get_shared_config()
+        config[name] = duration
+        cls.write_shared_config(config)
 
     @classmethod
     def get_class_codes(cls) -> list:

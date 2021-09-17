@@ -12,6 +12,7 @@ import time
 
 from zygrader import bobs_shake, class_manager, data, grade_puller, ui, utils
 from zygrader.zybooks import Zybooks
+from zygrader.config.shared import SharedData
 
 
 def check_student_submissions(zy_api, student_id, lab, search_pattern):
@@ -574,6 +575,63 @@ def end_of_semester_tools():
     window.register_layer(menu)
 
 
+def set_recently_locked_range(row: ui.layers.Row, name: str):
+    window = ui.get_window()
+    popup = ui.layers.TextInputLayer(f"Set {name} recently locked range")
+
+    original = SharedData.RECENT_LOCK_GRADES if name == "grades" else SharedData.RECENT_LOCK_EMAILS
+
+    popup.set_text(str(original))
+    window.run_layer(popup)
+
+    try:
+        new_range = int(popup.get_text())
+        SharedData.set_recently_locked(name, new_range)
+        row.set_row_text(
+            f"{'Grader:' if name == 'grades' else 'Email: '} {new_range} minutes"
+        )
+        SharedData.initialize_recently_locked()
+    except ValueError:
+        popup = ui.layers.Popup("Error")
+        popup.set_message(["Invalid input"])
+        window.run_layer(popup)
+
+
+class ClassCodeRadioGroup(ui.layers.RadioGroup):
+    def __init__(self, config: str, fn=None):
+        self._config = config
+        self._fn = fn
+
+    def toggle(self, _id: str):
+        SharedData.set_current_class_code(_id)
+
+    def is_toggled(self, _id: str):
+        return SharedData.CLASS_CODE == _id
+
+
+def admin_config():
+    """A menu of admin configurations similar to the user preferences"""
+    window = ui.get_window()
+    popup = ui.layers.ListLayer("Admin Config", popup=True)
+    popup.set_exit_text("Close")
+
+    # Recently locked time ranges
+    row = popup.add_row_parent("Recently Locked Ranges")
+    sub = row.add_row_text(f"Grader: {SharedData.RECENT_LOCK_GRADES} minutes")
+    sub.set_callback_fn(set_recently_locked_range, sub, "grades")
+    sub = row.add_row_text(f"Email:  {SharedData.RECENT_LOCK_EMAILS} minutes")
+    sub.set_callback_fn(set_recently_locked_range, sub, "emails")
+
+    # Shared Class Code
+    row = popup.add_row_parent("Class Code")
+    radio = ClassCodeRadioGroup("class_code")
+    class_codes = SharedData.get_class_codes()
+    for code in class_codes:
+        row.add_row_radio(code, radio, code)
+
+    window.register_layer(popup, "Admin Config")
+
+
 def admin_menu():
     """Create the admin menu"""
     window = ui.get_window()
@@ -589,5 +647,6 @@ def admin_menu():
     menu.add_row_text("End Of Semester Tools", end_of_semester_tools)
     menu.add_row_text("Report High-Scoring Students",
                       report_high_scoring_students)
+    menu.add_row_text("Config", admin_config)
 
     window.register_layer(menu, "Admin")

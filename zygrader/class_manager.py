@@ -409,28 +409,6 @@ def download_roster(silent=False):
         window.run_layer(popup)
 
 
-def change_class():
-    """Change the current class.
-
-    This applies globally to all users of zygrader.
-    """
-    window = ui.get_window()
-    class_codes = SharedData.get_class_codes()
-
-    popup = ui.layers.ListLayer("Class Code", popup=True)
-    for code in class_codes:
-        popup.add_row_text(code)
-    window.run_layer(popup)
-    if popup.canceled:
-        return
-
-    code_index = popup.selected_index()
-    SharedData.set_current_class_code(class_codes[code_index])
-    popup = ui.layers.Popup("Changed Class",
-                            [f"Class changed to {class_codes[code_index]}"])
-    window.run_layer(popup)
-
-
 def lab_manager():
     window = ui.get_window()
 
@@ -460,5 +438,4 @@ def start():
     menu.add_row_text("Lab Manager", lab_manager)
     menu.add_row_text("Class Section Manager", class_section_manager)
     menu.add_row_text("Download Student Roster", download_roster)
-    menu.add_row_text("Change Class", change_class)
     window.register_layer(menu, "Class Manager")

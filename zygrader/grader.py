@@ -324,7 +324,7 @@ def is_lab_available(use_locks, student, lab):
     # the TA to confirm that they haven't been graded already.
     current_netid = utils.get_username()
     recently_locked, ts, netid = data.lock.was_recently_locked(
-        student, lab, current_netid)
+        student, lab, current_netid, range=SharedData.RECENT_LOCK_GRADES)
     if recently_locked:
         name = data.netid_to_name(netid)
         msg = [

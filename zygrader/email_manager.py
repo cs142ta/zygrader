@@ -1,6 +1,7 @@
 """Email: Manage locking of student emails from zygrader to prevent double-answering."""
 
 import curses
+from zygrader.config.shared import SharedData
 
 from zygrader import data, grader, ui, utils
 from zygrader.ui import colors
@@ -34,7 +35,7 @@ def lock_student_callback(student: data.Student):
 
     netid = utils.get_username()
     recently_locked, ts, netid = data.lock.was_recently_locked(
-        student, None, netid, range=2)
+        student, None, netid, range=SharedData.RECENT_LOCK_EMAILS)
 
     if recently_locked:
         name = data.netid_to_name(netid)
