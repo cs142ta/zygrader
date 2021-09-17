@@ -392,6 +392,9 @@ class DatetimeSpinner(ComponentLayer):
     def set_quickpicks(self, quickpicks):
         self.component.set_quickpicks(quickpicks)
 
+    def set_format_str(self, format_str):
+        self.component.set_time_format(format_str)
+
     def event_handler(self, event: Event, event_manager: EventManager):
         if event.type in {Event.LEFT, Event.BTAB}:
             self.component.previous_field()
