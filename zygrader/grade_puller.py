@@ -343,10 +343,21 @@ class GradePuller:
                                 consider_pairs[canvas_id].append(zybook_id)
                             else:
                                 consider_pairs[canvas_id] = [zybook_id]
+
+            seen_zybook_ids = set()
+            double_seen_zybook_ids = set()
+            for zybook_id_list in consider_pairs.values():
+                for zybook_id in zybook_id_list:
+                    if zybook_id in seen_zybook_ids:
+                        double_seen_zybook_ids.add(zybook_id)
+                    seen_zybook_ids.add(zybook_id)
+
+
             for canvas_id, zybook_id_list in consider_pairs.items():
                 # don't fuzzy match ids if they're too close
                 # to multiple students
-                if len(zybook_id_list) == 1:
+                if (len(zybook_id_list) == 1
+                        and zybook_id_list[0] not in double_seen_zybook_ids):
                     self._add_entry(canvas_id, zybook_id_list[0])
 
     def add_assignment_to_report(self, canvas_assignment, zybook_sections,
