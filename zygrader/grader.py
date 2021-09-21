@@ -207,9 +207,10 @@ def run_code_fn(window, submission):
     use_gdb = False
 
     if not submission.compile_and_run_code(use_gdb):
-        popup = ui.layers.OptionsPopup("Error", ["Could not compile code"])
-        popup.add_option("View Log", submission.view_stderr)
-        window.run_layer(popup)
+        if submission.has_stderr():
+            popup = ui.layers.OptionsPopup("Error", ["Could not compile code"])
+            popup.add_option("View Log", submission.view_stderr)
+            window.run_layer(popup)
 
 
 def pair_programming_submission_callback(lab, submission):

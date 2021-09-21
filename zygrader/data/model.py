@@ -458,6 +458,9 @@ class Submission(Iterable):
     def save_stderr(self, stderr):
         self.__stderr = stderr
 
+    def has_stderr(self) -> bool:
+        return self.__stderr != ""
+
     def view_stderr(self):
         utils.view_string(self.__stderr, "compile-error")
 
@@ -469,7 +472,7 @@ class Submission(Iterable):
         root_dir = self.files_directory
         if len(self.lab.parts) > 1:
             part = self.pick_part()
-            if part == ui.GO_BACK:
+            if part == None:
                 return False
 
             root_dir = os.path.join(
