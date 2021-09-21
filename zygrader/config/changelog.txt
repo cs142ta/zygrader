@@ -1,5 +1,11 @@
 # Try to keep lines shorter than 70 characters
 
+5.13.0
+* (Admin) add new option to set recently graded durations from
+  zygrader.
+* Fix crash when canceling the "Run Code" option
+* Fix crash in the grade puller with multiple-matched ids
+
 5.12.0
 * Added a check to prevent double-replies to student emails. If a
   student was locked within the last 2 minutes, a prompt will ask you
