@@ -316,7 +316,8 @@ class Submission(Iterable):
                     msg[-1] += f" [Compile Error]"
 
         msg.append("")
-        msg.append(f"Total Score: {response['score']}/{response['max_score']}")
+        percent = response["score"] / response["max_score"] * 100
+        msg.append(f"Total Score: {response['score']}/{response['max_score']} ({percent:0.2f}%)")
 
         self.msg = msg
 
