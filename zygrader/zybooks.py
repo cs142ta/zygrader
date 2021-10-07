@@ -237,6 +237,17 @@ class Zybooks:
 
         return score
 
+    def __gen_fake_results(self, len: int) -> list:
+        """
+        When a submission fails to compile, there are test bench data, but no test
+        results data. This generates a fake list of results (no output with 0 scores).
+        """
+
+        results = []
+        for _ in range(len):
+            results.append({"score": 0, "output": ""})
+        return results
+
     def __get_test_results(self, submission: dict) -> dict:
         """
         Collects test results including the names and scores for each test case.
@@ -244,12 +255,15 @@ class Zybooks:
         """
 
         # if there is a compile error the test results are not populated
-        if submission["error"] or "compile_error" in submission["results"]:
+        if submission["error"]:
             return {"score": 0, "max_score": 0, "tests": []}
 
         results = submission["results"]
-        test_results = results["test_results"]
         test_bench = results["config"]["test_bench"]
+        if "test_results" in results:
+            test_results = results["test_results"]
+        else:
+            test_results = self.__gen_fake_results(len(test_bench))
 
         # find max test bench label name
         label_len = 0
