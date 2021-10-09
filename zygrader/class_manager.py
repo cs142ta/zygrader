@@ -114,6 +114,32 @@ def fill_lab_list(lab_list: ui.layers.ListLayer, labs: data.model.Lab):
         lab_list.add_row_text(str(lab), edit_labs_fn, lab, lab_list)
     lab_list.rebuild = True
 
+def set_max_score_text(lab: data.model.Lab, row: ui.layers.Row):
+    if "max_score" in lab.options:
+        row.set_row_text(f"Max Score: {lab.options['max_score']}")
+    else:
+        row.set_row_text("Max Score: None")
+
+def set_max_score(lab, row: ui.layers.Row):
+    window = ui.get_window()
+    labs = data.get_labs()
+
+    text_input = ui.layers.TextInputLayer("Max Score")
+    text_input.set_prompt(["Enter the max score for this lab"])
+    if "max_score" in lab.options:
+        text_input.set_text(str(lab.options["max_score"]))
+    window.run_layer(text_input)
+    if text_input.canceled:
+        return
+
+    try:
+        lab.options["max_score"] = int(text_input.get_text())
+        data.write_labs(labs)
+        set_max_score_text(lab, row)
+    except ValueError:
+        popup = ui.layers.Popup("Error")
+        popup.set_message(["Invalid input"])
+        window.run_layer(popup)
 
 def set_date_text(lab, row: ui.layers.Row):
     # Update the row text
@@ -210,6 +236,11 @@ def edit_lab_options(lab):
     row = popup.add_row_text("Due Date")
     row.set_callback_fn(set_due_date, lab, row)
     set_date_text(lab, row)
+
+    row = popup.add_row_text("Max Score")
+    row.set_callback_fn(set_max_score, lab, row)
+    set_max_score_text(lab, row)
+
     window.register_layer(popup)
 
 
