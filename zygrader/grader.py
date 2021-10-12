@@ -421,7 +421,7 @@ def diff_parts_fn(window, submission):
     """Callback for text diffing parts of a submission"""
     error = submission.diff_parts()
     if error:
-        popup = ui.layer.Popup("Error", [error])
+        popup = ui.layers.Popup("Error", [error])
         window.run_layer(popup)
 
 
