@@ -14,7 +14,7 @@ class SectionResponse:
         self.success = False
         self.id = ""
         self.name = ""
-
+        self.max_score = 0
 
 class Zybooks:
     NO_ERROR = 0
@@ -184,6 +184,10 @@ class Zybooks:
             response.success = True
             response.id = content["id"]
             response.name = content["caption"]
+
+            test_bench = content["payload"]["test_bench"]
+            for test in test_bench:
+                response.max_score += test["max_score"]
 
         return response
 

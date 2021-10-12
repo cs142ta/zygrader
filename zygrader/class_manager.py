@@ -1,6 +1,8 @@
 """Class Manager: Functions to manage zybooks classes"""
 import json
 
+from typing import List
+
 from zygrader import data, ui
 from zygrader.config.shared import SharedData
 from zygrader.ui.templates import ZybookSectionSelector
@@ -88,6 +90,7 @@ def add_lab():
     section_numbers = section_selector.select_zybook_sections(
         return_just_numbers=True)
 
+    max_score = 0
     for chapter, section in section_numbers:
         part = {}
         response = zy_api.get_zybook_section(chapter, section)
@@ -97,8 +100,10 @@ def add_lab():
         part["name"] = response.name
         part["id"] = response.id
         parts.append(part)
+        max_score += response.max_score
 
-    new_lab = data.model.Lab(lab_name, parts, {})
+    options = {"max_score": max_score}
+    new_lab = data.model.Lab(lab_name, parts, options)
 
     edit_lab_options(new_lab)
 
@@ -108,17 +113,19 @@ def add_lab():
     data.write_labs(all_labs)
 
 
-def fill_lab_list(lab_list: ui.layers.ListLayer, labs: data.model.Lab):
+def fill_lab_list(lab_list: ui.layers.ListLayer, labs: List[data.model.Lab]):
     lab_list.clear_rows()
     for lab in labs:
         lab_list.add_row_text(str(lab), edit_labs_fn, lab, lab_list)
     lab_list.rebuild = True
+
 
 def set_max_score_text(lab: data.model.Lab, row: ui.layers.Row):
     if "max_score" in lab.options:
         row.set_row_text(f"Max Score: {lab.options['max_score']}")
     else:
         row.set_row_text("Max Score: None")
+
 
 def set_max_score(lab, row: ui.layers.Row):
     window = ui.get_window()
@@ -140,6 +147,7 @@ def set_max_score(lab, row: ui.layers.Row):
         popup = ui.layers.Popup("Error")
         popup.set_message(["Invalid input"])
         window.run_layer(popup)
+
 
 def set_date_text(lab, row: ui.layers.Row):
     # Update the row text
