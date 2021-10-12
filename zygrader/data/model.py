@@ -211,10 +211,19 @@ class Submission(Iterable):
         # Calculate score
         self.response["score"] = 0
         self.response["max_score"] = 0
+        incorrect_max = False
         for part in self.response["parts"]:
             if part["code"] != Zybooks.NO_SUBMISSION:
                 self.response["score"] += part["score"]
+                if part["max_score"] == 0:
+                    incorrect_max = True
                 self.response["max_score"] += part["max_score"]
+            else:
+                incorrect_max = True
+
+        # A submission part was missing so fall back on the max score saved in json
+        if incorrect_max:
+            self.response["max_score"] = self.lab.options["max_score"]
 
         # Create a list of test results.
         # There is a small chance that the test results may have changed
@@ -295,7 +304,9 @@ class Submission(Iterable):
 
         msg.append("")
         percent = response["score"] / response["max_score"] * 100
-        msg.append(f"Total Score: {response['score']}/{response['max_score']} ({percent:0.2f}%)")
+        msg.append(
+            f"Total Score: {response['score']}/{response['max_score']} ({percent:0.2f}%)"
+        )
 
         self.msg = msg
 
