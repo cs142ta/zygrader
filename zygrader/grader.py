@@ -172,7 +172,7 @@ def view_test_results(submission: model.Submission):
         row = popup.add_row_parent(part["name"])
         for test in part["tests"]:
             subrow = row.add_row_text(test["name"], view_test_io, test)
-            if test["type"] == "unit_test":
+            if not test["output"]:
                 subrow.set_disabled()
 
     window.run_layer(popup)
