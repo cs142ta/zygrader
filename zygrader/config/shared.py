@@ -222,8 +222,11 @@ class SharedData:
     @classmethod
     def get_current_class_code(cls) -> str:
         override = preferences.get("class_code")
-        if override and override != "No Override":
+        all_codes = cls.get_class_codes()
+        if override in all_codes:
             return override
+        elif override != "No Override":
+            preferences.set("class_code", "No Override")
         config = cls.get_shared_config()
         return config["class_code"]
 
