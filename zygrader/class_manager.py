@@ -2,6 +2,7 @@
 import json
 
 from zygrader import data, ui
+from zygrader.config import preferences
 from zygrader.config.shared import SharedData
 from zygrader.ui.templates import ZybookSectionSelector
 from zygrader.zybooks import Zybooks
@@ -67,6 +68,50 @@ def setup_new_class():
     window.run_layer(popup)
     class_section_manager()
 
+
+# TODO: Make this generic (same code in admin for remove locks)
+class ClassToggle(ui.layers.Toggle):
+    def __init__(self, name, list):
+        super().__init__()
+        self.__name = name
+        self.__list = list
+        self.get()
+
+    def toggle(self):
+        self.__list[self.__name] = not self.__list[self.__name]
+        self.get()
+
+    def get(self):
+        self._toggled = self.__list[self.__name]
+
+
+def remove_class():
+    """Allow the user to select class codes and then remove all associated files from disk"""
+    window = ui.get_window()
+
+    codes = {code: False for code in SharedData.get_class_codes()}
+
+    popup = ui.layers.ListLayer("Select classes to remove", popup=True)
+    popup.set_exit_text("Confirm")
+    for code in codes:
+        popup.add_row_toggle(code, ClassToggle(code, codes))
+    window.run_layer(popup)
+
+    codes = [code for code in codes if codes[code]]
+    if not codes:
+        return
+
+    msg = [
+        f"Are you sure you want to remove the following class data",
+        "including all files on disk?", "", ", ".join(codes)
+    ]
+    popup = ui.layers.BoolPopup("Continue", msg)
+    window.run_layer(popup)
+    if popup.canceled or not popup.get_result():
+        return
+
+    for code in codes:
+        SharedData.remove_class(window, code)
 
 def add_lab():
     """Add a lab to the current class"""
@@ -438,4 +483,5 @@ def start():
     menu.add_row_text("Lab Manager", lab_manager)
     menu.add_row_text("Class Section Manager", class_section_manager)
     menu.add_row_text("Download Student Roster", download_roster)
+    menu.add_row_text("Remove Classes", remove_class)
     window.register_layer(menu, "Class Manager")
