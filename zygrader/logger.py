@@ -21,6 +21,10 @@ def get_global_lock_path():
 def log(*args, type=INFO):
     """Log all arguments in a comma separated list with a type, username, and timestamp"""
 
+    # if no class is setup, do not do any logging
+    if not SharedData.get_current_class_code():
+        return
+
     with open(get_global_lock_path(), "a") as _log:
         _log.write(
             f"{type},{utils.get_username()},{datetime.datetime.now().isoformat()},"

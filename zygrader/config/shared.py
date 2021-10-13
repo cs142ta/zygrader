@@ -1,6 +1,7 @@
 """Shared Data: Data shared between all users of zygrader"""
 import json
 import os
+import shutil
 from distutils.version import LooseVersion
 
 from . import preferences
@@ -219,7 +220,7 @@ class SharedData:
         cls.write_shared_config(config)
 
     @classmethod
-    def get_current_class_code(cls):
+    def get_current_class_code(cls) -> str:
         override = preferences.get("class_code")
         if override and override != "No Override":
             return override
@@ -254,3 +255,27 @@ class SharedData:
             return
 
         cls.set_current_class_code(code)
+
+    @classmethod
+    def remove_class(cls, window, code: str):
+        # update the shared config
+        config = cls.get_shared_config()
+        config["class_codes"].remove(code)
+        cls.write_shared_config(config)
+
+        # If removing current, pick the first in the list
+        if config["class_code"] == code:
+            if config["class_codes"]:
+                cls.set_current_class_code(config["class_codes"][0])
+            else:
+                cls.set_current_class_code("")
+
+        # remove all files from disk
+        dir = os.path.join(cls.ZYGRADER_DATA_DIRECTORY, code)
+        if os.path.exists(dir):
+            shutil.rmtree(dir)
+
+        # if the current user's class code override was
+        # removed, we need to clean that up
+        if preferences.get("class_code") == code:
+            preferences.set("class_code", "No Override")
