@@ -34,15 +34,6 @@ class Lab:
         name = "".join(self.name.split())
         return f"{name}_{self.parts[0]['id']}"
 
-    @classmethod
-    def find(cls, line, text):
-        assignment = line.data
-
-        name = assignment.name.lower()
-        text = text.lower()
-
-        return name.find(text) != -1
-
     def to_json(self):
         lab = {
             "name": self.name,
@@ -74,19 +65,6 @@ class Student:
     def get_unique_name(self):
         name = "".join(self.full_name.split())
         return f"{name}_{self.id}"
-
-    @classmethod
-    def find(cls, line, text):
-        student = line.data
-
-        first_name = student.first_name.lower()
-        last_name = student.last_name.lower()
-        full_name = student.full_name.lower()
-        email = student.email.lower()
-        text = text.lower()
-
-        return (first_name.find(text) != -1 or last_name.find(text) != -1
-                or full_name.find(text) != -1 or email.find(text) != -1)
 
 
 class ClassSection:
