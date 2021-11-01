@@ -163,17 +163,17 @@ class Window:
         display_text = f'{bookend} {display_text} {bookend}'
 
         # Centered header
-        row = self.cols // 2 - len(display_text) // 2
-        add_str(self.header, 0, row, display_text)
+        col = self.cols // 2 - len(display_text) // 2
+        add_str(self.header, 0, col, display_text)
 
         color_a = curses.color_pair(colors.COLOR_PAIR_HEADER)
         color_b = curses.color_pair(colors.COLOR_PAIR_HEADER_ALT)
         try:
-            for row in range(self.cols):
-                if (row // 2) % 2 == 0:
-                    self.header.chgat(0, row, color_a | curses.A_BOLD)
+            for col in range(self.cols):
+                if (col // 2) % 2 == 0:
+                    self.header.chgat(0, col, color_a | curses.A_BOLD)
                 else:
-                    self.header.chgat(0, row, color_b | curses.A_BOLD)
+                    self.header.chgat(0, col, color_b | curses.A_BOLD)
         except:
             pass
 
