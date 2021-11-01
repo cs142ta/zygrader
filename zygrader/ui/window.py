@@ -168,11 +168,14 @@ class Window:
 
         color_a = curses.color_pair(colors.COLOR_PAIR_HEADER)
         color_b = curses.color_pair(colors.COLOR_PAIR_HEADER_ALT)
-        for row in range(self.cols):
-            if (row // 2) % 2 == 0:
-                self.header.chgat(0, row, color_a | curses.A_BOLD)
-            else:
-                self.header.chgat(0, row, color_b | curses.A_BOLD)
+        try:
+            for row in range(self.cols):
+                if (row // 2) % 2 == 0:
+                    self.header.chgat(0, row, color_a | curses.A_BOLD)
+                else:
+                    self.header.chgat(0, row, color_b | curses.A_BOLD)
+        except:
+            pass
 
         self.header.noutrefresh()
         self.__header_dirty = False
