@@ -1,5 +1,14 @@
 # Try to keep lines shorter than 70 characters
 
+5.14.0
+* Show grade as percentage in submission popup.
+* Increase accuracy of reported scores in submissions with compile errors.
+  (The max score will now always be correct)
+* Add support for viewing the output of unit tests from the grader.
+* Catch exceptions when drawing header colors.
+* (Admin) Add max score editing to the lab manager.
+* (Admin) Add menu to remove old zybooks from zygrader in the class manager.
+
 5.13.0
 * (Admin) add new option to set recently graded durations from
   zygrader.

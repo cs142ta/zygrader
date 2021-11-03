@@ -166,6 +166,7 @@ def show_versioning_message(window: ui.Window):
         "5.11.0",
         "5.12.0",
         "5.13.0",
+        "5.14.0",
     ]
 
     updated = False
