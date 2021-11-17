@@ -287,7 +287,7 @@ class Zybooks:
             if bench["name"] == "unit_test":
                 test_input = ""
                 expected = ""
-                output = result["test_output"]
+                output = result.get("test_output", "")
                 type = "unit_test"
             else:
                 test_input = bench["options"]["input"]
