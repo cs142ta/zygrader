@@ -352,7 +352,6 @@ class GradePuller:
                         double_seen_zybook_ids.add(zybook_id)
                     seen_zybook_ids.add(zybook_id)
 
-
             for canvas_id, zybook_id_list in consider_pairs.items():
                 # don't fuzzy match ids if they're too close
                 # to multiple students
@@ -369,8 +368,9 @@ class GradePuller:
 
         for canvas_student_id, zybook_student in mapping.mapping.items():
             canvas_student = self.canvas_students[canvas_student_id]
-            if canvas_student["section_number"] in class_sections:
-                grade = zybook_student["grade"]
+            section_number = canvas_student["section_number"]
+            if section_number in class_sections:
+                grade = zybook_student["possible_grades"][section_number]
                 canvas_student[canvas_assignment] = grade
             # else leave canvas grade as it was
         for canvas_student_id in mapping.unmatched_canvas_ids:
@@ -467,15 +467,17 @@ class GradePuller:
                 report, _ = self.fetch_completion_report(
                     due_time, zybook_sections)
 
-                bad_section_count = 0
                 for id, row in report.items():
-                    try:
-                        if (int(row["Class section"])) in class_section_list:
-                            zybooks_students[id] = row
-                    except ValueError:
-                        bad_section_count += 1
-                        key = f"bad_zy_class_section_{bad_section_count}"
-                        zybooks_students[key] = row
+                    possible_grades = {
+                        section: row["grade"]
+                        for section in class_section_list
+                    }
+                    if id in zybooks_students:
+                        zybooks_students[id]["possible_grades"].update(
+                            possible_grades)
+                    else:
+                        row["possible_grades"] = possible_grades
+                        zybooks_students[id] = row
 
                 num_completed += 1
                 wait_msg[-1] = (f"Completed {num_completed}"
