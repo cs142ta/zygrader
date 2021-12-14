@@ -1,10 +1,14 @@
 """Admin: Functions for more "administrator" users of zygrader to manage
 the class, scan through student submissions, and access to other menus"""
+from collections import defaultdict
 from zygrader.ui.templates import ZybookSectionSelector, filename_input
+from zygrader.ui.displaystring import DisplayStr
 from zygrader.config import preferences
 
 import csv
 import datetime
+import itertools
+import operator
 import os
 import requests
 import re
@@ -277,6 +281,146 @@ def report_gaps():
         writer.writerows(rows)
 
 
+def _get_exam_assignments(window: ui.Window, puller: grade_puller.GradePuller):
+    instructions_popup = ui.layers.Popup("Instructions")
+    instructions_popup.set_message([
+        "Select assignments related to Exams."
+        " After each assignment, you will select which exam it is a part of."
+    ])
+    window.run_layer(instructions_popup)
+    if instructions_popup.canceled:
+        return None
+
+    # Pre-build layers that are used repeatedly in the loop
+    which_exam_entry = ui.layers.TextInputLayer("Which Exam?")
+    which_exam_entry.set_prompt([
+        "Enter the id of the exam this assignment is part of.",
+        "You can choose any id system, just be consistent"
+        " (the ids are only used to associate assignments within this tool).",
+        DisplayStr(
+            "I recommend using [u:1] for MT1, [u:2] for MT2, and [u:0] for Final."
+        )
+    ])
+
+    ask_if_more_entry = ui.layers.BoolPopup("Instructions")
+    ask_if_more_base_prompt = ["Do you have more assignments to add?"]
+    ask_if_more_entry.set_message(ask_if_more_base_prompt)
+
+    exam_assignments = defaultdict(lambda: list())
+
+    assignments_msg = ["", DisplayStr("[u:Current assignments selected]")]
+    try:
+        more_assignments = True
+        while more_assignments:
+            assignment = puller.select_canvas_assignment()
+
+            window.run_layer(which_exam_entry)
+            if which_exam_entry.canceled:
+                return
+            exam = which_exam_entry.get_text()
+
+            exam_assignments[exam].append(assignment)
+            assignments_msg.append(f"Exam: {exam} | {assignment}")
+
+            ask_if_more_entry.set_message(ask_if_more_base_prompt +
+                                          assignments_msg)
+            window.run_layer(ask_if_more_entry)
+            if ask_if_more_entry.canceled:
+                return
+            more_assignments = ask_if_more_entry.get_result()
+
+    except grade_puller.GradePuller.StoppingException:
+        return None
+
+    final_exam_entry = ui.layers.ListLayer("Select which is the Final Exam",
+                                           popup=True)
+    assignment_list = list(exam_assignments)
+    for exam in assignment_list:
+        final_exam_entry.add_row_text(exam)
+    window.run_layer(final_exam_entry)
+    if final_exam_entry.canceled:
+        return
+    final_exam_assignment = assignment_list[final_exam_entry.selected_index()]
+
+    confirmation_explanation = ui.layers.Popup("Pre-Confirmation")
+    msg = [
+        "Next you will confirm that you have made the correct selections.",
+        "A list of the midterms you selected, with sublists containing the"
+        " assignments for each midterm, will be presented.",
+        DisplayStr(
+            "You can then say [u:Yes], this looks good, or [u:No], I need to fix it."
+        )
+    ]
+    confirmation_explanation.set_message(msg)
+    window.run_layer(confirmation_explanation)
+
+    confirmation_dialog = ui.layers.BoolPopup("Confirmation")
+    msg = []
+    for exam, assignments in exam_assignments.items():
+        msg.append(
+            f"Exam ID: {exam}{' (Final Exam)' if exam == final_exam_assignment else ''}"
+        )
+        for assignment in assignments:
+            msg.append('   ' + assignment)
+    msg.append("")
+    msg.append("Does everything look correct?")
+    confirmation_dialog.set_message(msg)
+    window.run_layer(confirmation_dialog)
+    if confirmation_dialog.canceled or not confirmation_dialog.get_result():
+        return None
+
+    return sorted(exam_assignments.items(),
+                  key=lambda kv: kv[0] == final_exam_assignment)
+
+
+def _sum_scores(mapping, assignment_names):
+    return sum(
+        float(mapping[assignment]) if mapping[assignment] else 0.0
+        for assignment in assignment_names)
+
+
+def _combined_score(assignment_names, student, points_out_of):
+    points_earned = _sum_scores(student, assignment_names)
+    points_total = _sum_scores(points_out_of, assignment_names)
+    return points_earned / points_total
+
+
+def _give_score_to_assignments(assignment_names, student, score, points_out_of):
+    point_distro = sorted((float(points_out_of[assignment]), assignment)
+                          for assignment in assignment_names)
+    points_total = sum(v[0] for v in point_distro)
+    points_left_to_distribute = score * points_total
+
+    for point_max, assignment in point_distro:
+        points_to_give = min(point_max, points_left_to_distribute)
+        student[assignment] = points_to_give
+        points_left_to_distribute -= points_to_give
+        if points_left_to_distribute <= 0:
+            break
+    if points_left_to_distribute > 0:
+        student[point_distro[-1][1]] += points_left_to_distribute
+
+
+def _apply_midterm_mercy(midterm_assignments, final_assignments,
+                         puller: grade_puller.GradePuller):
+    # Do the replacement for each student
+    for student in puller.canvas_students.values():
+        midterm_scores = [
+            _combined_score(assignments, student, puller.canvas_points_out_of)
+            for assignments in midterm_assignments
+        ]
+        final_score = _combined_score(final_assignments, student,
+                                      puller.canvas_points_out_of)
+
+        lowest_mt_idx, lowest_mt_score = min(enumerate(midterm_scores),
+                                             key=operator.itemgetter(1))
+
+        if lowest_mt_score < final_score:
+            _give_score_to_assignments(midterm_assignments[lowest_mt_idx],
+                                       student, final_score,
+                                       puller.canvas_points_out_of)
+
+
 def midterm_mercy():
     """Replace the lower of the two midterm scores with the final exam score"""
     window = ui.get_window()
@@ -284,55 +428,19 @@ def midterm_mercy():
     if not _confirm_gradebook_ready():
         return
 
-    # Use the Canvas parsing from the gradepuller to get the gradebook in
-    # also use the selection of canvas assignments from the gradepuller
     puller = grade_puller.GradePuller()
-    try:
-        puller.read_canvas_csv()
+    puller.read_canvas_csv()
 
-        popup = ui.layers.Popup("Selection")
-        popup.set_message(["First Select the Midterm 1 Assignment"])
-        window.run_layer(popup)
-        midterm_1_assignment = puller.select_canvas_assignment()
-
-        midterm_2_assignment = None
-        double_midterm_popup = ui.layers.BoolPopup("2 Midterms")
-        double_midterm_popup.set_message([
-            "Is there a second midterm this semester?",
-            "If so, select that assignment next."
-        ])
-        window.run_layer(double_midterm_popup)
-        if double_midterm_popup.canceled:
-            return
-        if double_midterm_popup.get_result():
-            midterm_2_assignment = puller.select_canvas_assignment()
-
-        popup.set_message(["Next Select the Final Exam Assignment"])
-        window.run_layer(popup)
-        final_exam_assignment = puller.select_canvas_assignment()
-
-    except grade_puller.GradePuller.StoppingException:
+    exam_assignments = _get_exam_assignments(window, puller)
+    if not exam_assignments:
         return
 
-    # Do the replacement for each student
-    for student in puller.canvas_students.values():
-        midterm_1_score = float(student[midterm_1_assignment])
-        midterm_2_score = (float(student[midterm_2_assignment])
-                           if midterm_2_assignment else None)
-        final_exam_score = float(student[final_exam_assignment])
+    midterm_assignments = [
+        assignments for _, assignments in exam_assignments[:-1]
+    ]
+    final_assignments = exam_assignments[-1][1]
 
-        if midterm_2_assignment:
-            # Figure out lower midterm, then if it should be replaced do so
-            if midterm_2_score < midterm_1_score:
-                if final_exam_score > midterm_2_score:
-                    student[midterm_2_assignment] = final_exam_score
-            else:
-                if final_exam_score > midterm_1_score:
-                    student[midterm_1_assignment] = final_exam_score
-        else:
-            # With only one midterm, just replace it if lower than final
-            if final_exam_score > midterm_1_score:
-                student[midterm_1_assignment] = final_exam_score
+    _apply_midterm_mercy(midterm_assignments, final_assignments, puller)
 
     out_path = filename_input(purpose="the updated midterm scores",
                               text=os.path.join(preferences.get("output_dir"),
@@ -340,19 +448,18 @@ def midterm_mercy():
     if out_path is None:
         return
 
-    # Again use the gradepuller functionality
-    # We just need to programmatically set the selected assignments
-    puller.selected_assignments = [midterm_1_assignment]
-    if midterm_2_assignment:
-        puller.selected_assignments.append(midterm_2_assignment)
+    # We need to programmatically set the selected assignments in the puller
+    puller.selected_assignments = list(
+        itertools.chain.from_iterable(midterm_assignments))
+
     puller.write_upload_file(out_path)
 
-    popup = ui.layers.Popup("Reminder")
-    popup.set_message([
+    reminder = ui.layers.Popup("Reminder")
+    reminder.set_message([
         "Don't forget to manually correct as necessary"
         " (for any students who should not have a score replaced)."
     ])
-    window.run_layer(popup)
+    window.run_layer(reminder)
 
 
 def attendance_score():
