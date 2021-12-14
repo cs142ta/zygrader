@@ -1,5 +1,10 @@
 # Try to keep lines shorter than 70 characters
 
+5.15.0
+* (Admin) Update Midterm Mercy to allow for imbalanced exams
+* (Admin) Use sections #s as reported by Canvas, not zyBooks
+           (automated systems are more reliable than humans here apparently)
+
 5.14.0
 * Show grade as percentage in submission popup.
 * Increase accuracy of reported scores in submissions with compile errors.

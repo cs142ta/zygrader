@@ -9,7 +9,7 @@ from . import preferences
 
 class SharedData:
     # Zygrader version
-    VERSION = LooseVersion("5.14.1")
+    VERSION = LooseVersion("5.15.0")
 
     # Current class code (shared)
     # Set from the admin > config menu for all users
