@@ -64,6 +64,9 @@ def was_recently_locked(student: Student,
 
     # Collect all rows within the time range
     rows = []
+    if not os.path.isfile(lock_log):
+        return False, None, None
+
     with open(lock_log, "r") as log:
         for line in csv.reader(log):
             row = Row(datetime.fromisoformat(line[0]), line[2], line[3],

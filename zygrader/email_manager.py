@@ -42,7 +42,8 @@ def lock_student_callback(student: data.Student):
         msg = [
             f"This email may have been replied to already by {name} at {ts}.",
             "Please check to make sure no one has yet replied.",
-            "(Or the student has sent a new email within the last 10 minutes making this a false alarm)",
+            f"(Or the student has sent a new email within the last {SharedData.RECENT_LOCK_EMAILS}"
+                " minutes making this a false alarm)",
         ]
         popup = ui.layers.OptionsPopup("Recently Emailed", msg)
         popup.add_option("Proceed to Lock")
